@@ -1,0 +1,17 @@
+/compile/.defs
+/compile/.vers_num
+/compile/version
+/compile/xinu.map
+/compile/xinu.elf
+/compile/binaries
+
+/config/conf.h.orig
+/config/config
+/config/lex.yy.c
+/config/y.tab.c
+
+/include/conf.h
+/system/conf.c
+
+/.gdb_history
+/.gdb.pid
