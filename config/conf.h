@@ -1,3 +1,5 @@
+#ifndef _HEADER_H
+#define _HEADER_H
 /* conf.h (GENERATED FILE; DO NOT EDIT) */
 
 /* Device switch table declarations */
@@ -59,3 +61,5 @@ extern	struct	dentry	devtab[]; /* one entry per device */
 #define CLKFREQ      200000000	/* 200 MHz clock			*/
 
 #define	LF_DISK_DEV	RAM0 
+
+#endif

@@ -8,7 +8,16 @@
 #									#
 #########################################################################
 
-COMPILER_ROOT	=	/usr/bin/
+ifeq ($(shell uname), Darwin)
+	ifeq ($(shell uname -p), arm64)
+		COMPILER_ROOT	=	/opt/homebrew/bin/x86_64-elf-
+	else
+		COMPILER_ROOT	=	/usr/local/bin/x86_64-elf-
+	endif
+else
+	COMPILER_ROOT	=	/usr/bin/
+endif
+
 PNAME		=	QEMU
 PLAT		=	Platform_$(PNAME)
 TOPDIR		=	..
@@ -126,6 +135,7 @@ clean:
 	@(cd $(TOPDIR)/config; make clean)
 	@echo removing xinu ...
 	@rm -f $(XINU)
+	@rm -f xinu.map
 
 #--------------------------------------------------------------------------------
 # Locations of source directories and exceptions (.c and .[sS] files to exclude)
