@@ -4,7 +4,7 @@ cd "$(dirname "$0")"/compile
 
 GDB="gdb"
 if [[ "$(uname)" == "Darwin" ]]; then
-	GDB="i386-elf-gdb"
+	GDB="x86_64-elf-gdb"
 fi
 
 if ! command -v "$GDB" &>/dev/null; then
