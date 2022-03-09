@@ -8,14 +8,11 @@
 #									#
 #########################################################################
 
+# compiler should in path
 ifeq ($(shell uname), Darwin)
-	ifeq ($(shell uname -p), arm64)
-		COMPILER_ROOT	=	/opt/homebrew/bin/x86_64-elf-
-	else
-		COMPILER_ROOT	=	/usr/local/bin/x86_64-elf-
-	endif
+	COMPILER_ROOT	=	x86_64-elf-
 else
-	COMPILER_ROOT	=	/usr/bin/
+	COMPILER_ROOT	=	
 endif
 
 PNAME		=	QEMU
