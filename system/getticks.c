@@ -6,9 +6,9 @@
  *  getticks  -  Retrieve the number of clock ticks since CPU reset
  *------------------------------------------------------------------------
  */
-uint64  	getticks()
+void  	getticks(uint64 *pret)
 {
 	uint64 ret;
 	asm volatile ( "rdtsc" : "=A"(ret) );
-	return ret;
+	*pret = ret;
 }

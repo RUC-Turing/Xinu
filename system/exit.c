@@ -8,5 +8,5 @@
  */
 void	exit(void)
 {
-	kill(getpid());		/* Kill the current process */
+	syscall_kill(syscall_getpid());		/* Kill the current process */
 }

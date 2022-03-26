@@ -8,5 +8,5 @@
  */
 void	userret(void)
 {
-	kill(getpid());			/* Force process to exit */
+	syscall_kill(syscall_getpid());			/* Force process to exit */
 }

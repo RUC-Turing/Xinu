@@ -29,23 +29,23 @@ shellcmd xsh_help(int nargs, char *args[])
 
 	if (nargs == 2 && strncmp(args[1], "--help", 7) == 0) {
 
-		printf("Use:\n");
-		printf("\t%s [command]\n", args[0]);
-		printf("Description:\n");
-		printf("\tProvides a list of shell commands or\n");
-		printf("\thelp information for a specific command\n");
-		printf("Options:\n");
-		printf("\tcommand\tspecific command for which to\n");
-		printf("\t\tdisplay help information\n");
-		printf("\t--help\tdisplay this help and exit\n");
+		syscall_printf("Use:\n");
+		syscall_printf("\t%s [command]\n", args[0]);
+		syscall_printf("Description:\n");
+		syscall_printf("\tProvides a list of shell commands or\n");
+		syscall_printf("\thelp information for a specific command\n");
+		syscall_printf("Options:\n");
+		syscall_printf("\tcommand\tspecific command for which to\n");
+		syscall_printf("\t\tdisplay help information\n");
+		syscall_printf("\t--help\tdisplay this help and exit\n");
 		return 0;
 	}
 
 	/* Check for valid number of arguments */
 
 	if (nargs > 2) {
-		fprintf(stderr, "%s: too many arguments\n", args[0]);
-		fprintf(stderr, "Try '%s --help' for more information\n",
+		syscall_fprintf(stderr, "%s: too many arguments\n", args[0]);
+		syscall_fprintf(stderr, "Try '%s --help' for more information\n",
 				args[0]);
 		return 1;
 	}
@@ -74,13 +74,13 @@ shellcmd xsh_help(int nargs, char *args[])
 			(*cmdtab[i].cfunc) (2, argv);
 			return 0;
 		}
-		printf("%s: no such command as '%s'\n", args[0], args[1]);
+		syscall_printf("%s: no such command as '%s'\n", args[0], args[1]);
 		return 1;
 	}
 
 	/* No arguments -- print a list of shell commands */
 
-	printf("\nshell commands are:\n\n");
+	syscall_printf("\nshell commands are:\n\n");
 
 	/* Calculate the maximum length of a command name */
 
@@ -112,13 +112,13 @@ shellcmd xsh_help(int nargs, char *args[])
 	for (i=0; i<lines; i++) {
 		for (j=i; j<ncmd; j+=lines) {
 			len = strnlen(cmdtab[j].cname,80);
-			printf("%s", cmdtab[j].cname);
+			syscall_printf("%s", cmdtab[j].cname);
 			while (len < spac) {
-				printf(" ");
+				syscall_printf(" ");
 				len++;
 			}
 		}
-		printf("\n");
+		syscall_printf("\n");
 	}
 	return 0;
 }
