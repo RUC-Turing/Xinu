@@ -15,7 +15,7 @@ process	main(void)
 	while (TRUE) {
 		syscall_receive();
 		syscall_sleepms(200);
-		syscall_kprintf("\n\nMain process recreating shell\n\n");
+		syscall_fprintf("\n\nMain process recreating shell\n\n");
 		syscall_resume(syscall_create(shell, 4096, 20, "shell", 1, CONSOLE));
 	}
 	return OK;
