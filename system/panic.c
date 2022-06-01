@@ -7,7 +7,7 @@
  *------------------------------------------------------------------------
  */
 void	panic (
-	 char	*msg			/* Message to display		*/
+	const char	*msg			/* Message to display		*/
 	)
 {
 	disable();			/* Disable interrupts		*/

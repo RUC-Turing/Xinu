@@ -64,6 +64,12 @@ nam:
 		-w ioerr 	-s ioerr 	-n ioerr
 		-intr ioerr
 
+disk:
+	on top
+		-i ionull   -o ionull   -c ionull
+		-r diskread -g diskgetc -p ioerr
+		-w ioerr    -s diskseek -n ionull
+
 %%
 
 /* Actual device declarations that each give the name of a device that	*/
@@ -84,6 +90,8 @@ nam:
    /* Define the local file system master device (one per system) */
 
    LFILESYS is lfs on ram
+
+   DISK is disk on top csr 0000760
 
    /* Define local file pseudo-devices (multiple per system) */
 

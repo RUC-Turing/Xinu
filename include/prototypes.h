@@ -243,7 +243,8 @@ extern	qid16	newqueue(void);
 extern	syscall	open(did32, char *, char *);
 
 /* in file panic.c */
-extern	void	panic(char *);
+extern	void	panic(const char *);
+#define assert(x) do { if (!(x)) panic(#x); } while(0)
 
 /* in file platinit.c */
 extern	void	platinit(void);
@@ -399,6 +400,14 @@ extern	devcall	ttyread(struct dentry *, char *, int32);
 /* in file ttywrite.c */
 extern	devcall	ttywrite(struct dentry *, char *, int32);
 
+/* in file disk.cxx */
+extern	devcall	diskread(struct dentry *, char *, int32);
+
+/* in file disk.cxx */
+extern	devcall	diskgetc(struct dentry *);
+
+/* in file disk.cxx */
+devcall	diskseek (struct dentry *, uint32);
 
 /* in file unsleep.c */
 extern	syscall	unsleep(pid32);

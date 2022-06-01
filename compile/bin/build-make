@@ -76,12 +76,14 @@ PRE_DIR='+DIR:'
 PRE_OMIT='+OMIT:'
 PRE_CFILE='+CFILE:'
 PRE_SFILE='+SFILE:'
+PRE_CXXFILE='+CXXFILE:'
 
-export PRE_ERR PRE_DIR PRE_OMIT PRE_CFILE PRE_SFILE
+export PRE_ERR PRE_DIR PRE_OMIT PRE_CFILE PRE_SFILE PRE_CXXFILE
 
 TMP1=".,BUILDM1-$$"
 TMP2=".,BUILDM2-$$"
-trap "rm -f $TMP1 $TMP2; exit" 1 2 3
+TMP3=".,BUILDM3-$$"
+trap "rm -f $TMP1 $TMP2 $TMP3; exit" 1 2 3
 
 #
 # Parse arguments and generate input to the script below
@@ -98,6 +100,7 @@ fi
 (
  > $TMP1
  > $TMP2
+ > $TMP3
 
  while test $# -gt 0; do
 
@@ -138,10 +141,11 @@ fi
     else
 	CFILES=`ls $DIR/*.c    2>$TMP1`
 	SFILES=`ls $DIR/*.[sS] 2>$TMP2`
+	CXXFILES=`ls $DIR/*.{cxx,cpp} 2>$TMP3`
     fi
 
-    if test -s $TMP1 -a -s $TMP2; then
-	(echo;echo "Warning: directory $DIR does not contain any .c or .[sS] files to compile";echo) >&2
+    if test -s $TMP1 -a -s $TMP2 -a -s $TMP3; then
+	(echo;echo "Warning: directory $DIR does not contain any .c, .[sS] or .{cxx,cpp} files to compile";echo) >&2
     fi
     rm -f $TMP1 $TMP2
 
@@ -174,6 +178,15 @@ fi
 		echo "$PRE_CFILE$i"
 	done
     fi
+
+	# output .cxx files for this directory
+
+    if test "x$CXXFILES" != "x"; then
+	for i in $CXXFILES; do
+		echo "$PRE_CXXFILE$i"
+	done
+    fi
+
 
  done
 ) |
@@ -372,6 +385,7 @@ BEGIN {
 	plen_omt = length("'$PRE_OMIT'");
 	plen_cfl = length("'$PRE_CFILE'");
 	plen_sfl = length("'$PRE_SFILE'");
+	plen_cxxfl = length("'$PRE_CXXFILE'");
 
 
 	hdr1 = "#-------------------------------------------------------------------------------#";
@@ -385,7 +399,8 @@ BEGIN {
 
 	msg1 = "SRC_CFILES =";
 	msg2 = "SRC_SFILES =";
-	msg3 = "OBJ_FILES  =";
+	msg3 = "SRC_CXXFILE =";
+	msg4 = "OBJ_FILES  =";
 }
 
 #
@@ -415,6 +430,7 @@ BEGIN {
 
 	ncfiles[ndirs] = 0;
 	nsfiles[ndirs] = 0;
+	ncxxfiles[ndirs] = 0;
 	nomits = 0;
 	next;
 }
@@ -475,6 +491,22 @@ BEGIN {
 	next;
 }
 
+#
+# Handle as cxx file from the current directory
+#
+/^\'$PRE_CXXFILE'/ {
+	fullname = substr($0,plen_cxxfl+1);
+	basename = getbasename(fullname);
+	# Skip omitted files
+	if (isomitted(basename) > 0) {
+		next;
+	}
+	ncxxfiles[ndirs]++;
+	cxxpath[ndirs "%" ncxxfiles[ndirs]] = fullname;
+	cxxfile[ndirs "%" ncxxfiles[ndirs]] = basename;
+	next;
+}
+
 
 #
 # Any other input line is unexpected
@@ -495,7 +527,7 @@ END {
 	#################################################################
 
 	printf("%s\n%s\n%s\n%s\n%s\n\n",hdr1, hdr2, hdr3, hdr2, hdr1);
-	printf("%s\n%s\n\n",msg1, msg2, msg3);
+	printf("%s\n%s\n\n",msg1, msg2, msg3, msg4);
 
 	totlen = 0;	# max over valid source file names in all directories
 
@@ -585,6 +617,18 @@ END {
 		totlen = maxlen;
 	    }
 
+		# Check CXX files
+	    for (i = 1; i <= ncxxfiles[d]; i++) {
+		srccxxfiles[i] = cxxfile[d "%" i]
+		l = length(srccxxfiles[i]);
+		if (l > maxlen) {
+			maxlen = l;
+		}
+	    }
+	    if (maxlen > totlen) {	# update global max across all directories
+		totlen = maxlen;
+	    }
+
 	    # Format the list of S files for this directory
 
 	    fmtlist(nsfiles[d], srcsfiles, maxlen, dirs[d], pref[d] "_SFILES");
@@ -592,6 +636,9 @@ END {
 	    # Format the list of C files for this directory
 
 	    fmtlist(ncfiles[d], srccfiles, maxlen, dirs[d], pref[d] "_CFILES");
+
+		# Format the list of CXX files for this directory
+	    fmtlist(ncxxfiles[d], srccxxfiles, maxlen, dirs[d], pref[d] "_CXXFILES");
 
 	    printf("\n");
 
@@ -614,6 +661,11 @@ END {
 		asnl[nasn] = "SRC_SFILES";
 		asnr[nasn] = sprintf("+= ${%s_SFILES}", pref[d]);
 	    }
+		if (ncxxfiles[d] > 0) {
+		nasn++;
+		asnl[nasn] = "SRC_CXXFILES";
+		asnr[nasn] = sprintf("+= ${%s_CXXFILES}", pref[d]);
+	    }
 
 	    #
 	    # Generate assignments for variables  prefix_CFULL and prefix_SFULL
@@ -629,6 +681,11 @@ END {
 		asnl[nasn] = sprintf("%s_SFULL", prefix);
 		asnr[nasn] = sprintf("+= ${%s_SFILES:%%=%s/%%}", pref[d], dirs[d]);
 	    }
+		if (ncxxfiles[d] > 0) {
+		nasn++;
+		asnl[nasn] = sprintf("%s_CXXFULL", prefix);
+		asnr[nasn] = sprintf("+= ${%s_CXXFILES:%%=%s/%%}", pref[d], dirs[d]);
+	    }
 
 	    #
 	    # Generate assignments for variables  SRC_CFULL and SRC_SFULL
@@ -643,6 +700,11 @@ END {
 		nasn++;
 		asnl[nasn] = "SRC_SFULL";
 		asnr[nasn] = sprintf("+= ${%s_SFULL}", pref[d]);
+	    }
+		if (ncxxfiles[d] > 0) {
+		nasn++;
+		asnl[nasn] = "SRC_CXXFULL";
+		asnr[nasn] = sprintf("+= ${%s_CXXFULL}", pref[d]);
 	    }
 	    wid = 0;
 	    for (i=1; i<=nasn; i++) {
@@ -661,13 +723,15 @@ END {
 
 	printf("OBJ_TMP     = ${patsubst %%.s,%%.o,$(SRC_SFILES)}    #	substitute .s => .o\n");
 	printf("OBJ_SFILES  = ${patsubst %%.S,%%.o,$(OBJ_TMP)}       #	substitute .S => .o\n");
-        printf("OBJ_CFILES  = ${patsubst %%.c,%%.o,$(SRC_CFILES)}    #	substitute .c => .o\n");
-	printf("OBJ_LIST    = ${OBJ_CFILES} ${OBJ_SFILES}\n");
+    printf("OBJ_CFILES  = ${patsubst %%.c,%%.o,$(SRC_CFILES)}    #	substitute .c => .o\n");
+	printf("OBJ_CXXFILES  = ${patsubst %%.cxx,%%.o,$(SRC_CXXFILES)}    #	substitute .cxx => .o\n");
+	printf("OBJ_LIST    = ${OBJ_CFILES} ${OBJ_SFILES} ${OBJ_CXXFILES}\n");
 	printf("OBJ_FILES   = ${OBJ_LIST:%%=binaries/%%}\n");
-	printf("SRC_FULL    = ${SRC_CFULL} ${SRC_SFULL}\n");
+	printf("SRC_FULL    = ${SRC_CFULL} ${SRC_SFULL} ${SRC_CXXFULL}\n");
 
 	fmt4c = sprintf("%%-%ds%%s\n\t${CC} ${CFLAGS} -o %%s %%s\n",9+totlen+3);
 	fmt4s = sprintf("%%-%ds%%s\n\t${CC} ${CFLAGS} -o %%s %%s\n",9+totlen+3);
+	fmt4cxx = sprintf("%%-%ds%%s\n\t${CXX} ${CXXFLAGS} -o %%s %%s\n",9+totlen+3);
 	for (d=1; d<=ndirs; d++) {
 	    needheadings = 1;
 
@@ -696,6 +760,18 @@ END {
 		tmpsrc = dirs[d] "/" fname;
 		printf(fmt4c, tmpobj ":", tmpsrc, tmpobj, tmpsrc);
             }
+		
+		# print dependencies for .cxx files
+	    for (i = 1; i <= ncxxfiles[d]; i++) {
+		if (needheadings > 0) {
+			printf("\n%s\n%s%s\n%s\n\n", hdr4, hdr8, dirs[d], hdr4);
+			needheadings = 0;
+		}
+		fname = cxxfile[d "%" i];
+		tmpobj = "binaries/" substr(fname, 1, length(fname)-4) ".o";
+		tmpsrc = dirs[d] "/" fname;
+		printf(fmt4cxx, tmpobj ":", tmpsrc, tmpobj, tmpsrc);
+            }
 	    
 	}
 	printf("\nobjs:	${OBJ_FILES}\n");
@@ -706,5 +782,9 @@ END {
 
 	printf("\nlist_ssrc:\n\t@echo ${SRC_SFILES}\n");
 
+	printf("\nlist_cxxsrc:\n\t@echo ${SRC_CXXFILES}\n");
+
 	printf("\n# Export variables for recursive make calls (such as the library)\n\nexport\n\n");
 } '
+
+rm -f $TMP1 $TMP2 $TMP3; exit
