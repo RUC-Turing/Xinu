@@ -141,11 +141,11 @@ fi
     else
 	CFILES=`ls $DIR/*.c    2>$TMP1`
 	SFILES=`ls $DIR/*.[sS] 2>$TMP2`
-	CXXFILES=`ls $DIR/*.{cxx,cpp} 2>$TMP3`
+	CXXFILES=`ls $DIR/*.cxx 2>$TMP3`
     fi
 
     if test -s $TMP1 -a -s $TMP2 -a -s $TMP3; then
-	(echo;echo "Warning: directory $DIR does not contain any .c, .[sS] or .{cxx,cpp} files to compile";echo) >&2
+	(echo;echo "Warning: directory $DIR does not contain any .c, .[sS] or .cxx files to compile";echo) >&2
     fi
     rm -f $TMP1 $TMP2
 
